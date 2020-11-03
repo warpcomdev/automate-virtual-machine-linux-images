@@ -106,7 +106,11 @@ echo "INFO: Obtain SO_ISOCHECKSUMIMAGE from ${SO_ISOURLSHA256SUM}"
 export SO_ISOCHECKSUMIMAGE="$(grep -s "${SO_ISOIMAGENAME}" ${PARENT_HOME_BASEDIR}/isos/${SO_ISOSHA256SUMNAME} | awk '{print $1}')"
 
 echo "INFO: Validate JSON with Packer"
-packer-software/packer.exe ${MACHINEREADABLEPARAMETER} validate json/virtual-machine.json
+PACKER_EXE=packer
+if [[ -x ${PACKER_EXE} ]]; then
+  PACKER_EXE=packer_software/packer.exe
+fi
+${PACKER_EXE} packer ${MACHINEREADABLEPARAMETER} validate json/virtual-machine.json
 
 if [ "${PACKER_DEBUG,,}" == "true" ]
 then
@@ -115,7 +119,7 @@ then
 fi
 
 echo "INFO: Run the build with Packer"
-packer-software/packer.exe build ${PACKERDEBUG} ${MACHINEREADABLEPARAMETER} -force \
+${PACKER_EXE} build ${PACKERDEBUG} ${MACHINEREADABLEPARAMETER} -force \
 -var so_adminuser=${SO_ADMINUSER} \
 -var so_adminpass=${SO_ADMINPASS} \
 -var so_defaultclouduser=${SO_DEFAULTCLOUDUSER} \
@@ -155,7 +159,9 @@ echo "INFO: VMDK file to convert <${VMDK_FILENAME}>"
 echo "INFO: Image name to convert <${ONLYNAME_IMAGE}>"
 
 echo "INFO: Convert vmdk file to qcow2"
-qemu-img.exe convert -c -f vmdk ${ONLYNAME_IMAGE}.vmdk -O qcow2 ${ONLYNAME_IMAGE}.qcow2
+# qemu-img.exe convert -c -f vmdk ${ONLYNAME_IMAGE}.vmdk -O qcow2 ${ONLYNAME_IMAGE}.qcow2
+QEMU_IMG_EXE=$(which qemu-img.exe || qemu-img)
+${QEMU_IMG_EXE} convert -c -f vmdk ${ONLYNAME_IMAGE}.vmdk -O qcow2 ${ONLYNAME_IMAGE}.qcow2
 
 cd ${HOME_BASEDIR}
 
